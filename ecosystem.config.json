@@ -1,0 +1,9 @@
+{
+  "apps": [
+    {
+      "name": "Static web server",
+      "script": "npm run static-server",
+      "autorestart": true
+    }
+  ]
+}
