@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Box, Button, Input } from '@mui/material';
+import { Box, Button, Input, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
 
+import { getAllPositions } from '../api/positions.ts';
 import { getToken } from '../api/token.ts';
 import { registerUser } from '../api/users';
 import { Header } from '../components/Header/Header.tsx';
@@ -18,6 +20,15 @@ export function Registration() {
     phone: '',
     position_id: 0,
     photo: null,
+  });
+
+  const { data: positions, isError, isLoading } = useQuery({
+    queryKey: ['positions'],
+    queryFn: async () => {
+      const response = await getAllPositions();
+
+      return response;
+    },
   });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -44,6 +55,14 @@ export function Registration() {
       setData({ ...data, photo: e.target.files[0] });
     }
   };
+
+  const handlePositionChange = (event: SelectChangeEvent) => {
+    setData({ ...data, position_id: +event.target.value });
+  };
+
+  if (!positions || isLoading) return <div>Loading...</div>;
+
+  if (isError) return <div>Error fetching data</div>;
 
   return (
     <>
@@ -106,18 +125,26 @@ export function Registration() {
               setData({ ...data, phone: event.target.value });
             }}
           />
-          <Input
-            type="text"
+          <InputLabel id="positions">Position</InputLabel>
+          <Select
+            labelId="positions"
             name="position_id"
-            placeholder="Position"
+            label="Position"
+            value={data.position_id as unknown as string}
+            onChange={handlePositionChange}
             sx={{
               width: '100%',
               marginBottom: 2,
             }}
-            onChange={(event) => {
-              setData({ ...data, position_id: parseInt(event.target.value) });
-            }}
-          />
+          >
+            {positions.map((position) => {
+              return (
+                <MenuItem key={position.id} value={position.id}>
+                  {position.name}
+                </MenuItem>
+              );
+            })}
+          </Select>
           <input
             type="file"
             name="photo"
